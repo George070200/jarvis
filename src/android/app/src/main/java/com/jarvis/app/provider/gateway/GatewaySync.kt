@@ -80,6 +80,8 @@ class GatewaySync(
         internal data class GatewayTier(
             val id: String,
             val displayName: String,
+            /** 英文显示名；旧网关没有 display_name_en 时回退中文名。 */
+            val displayNameEn: String = displayName,
             val isDefault: Boolean,
             val contextWindow: Int? = null,
             val maxOutputTokens: Int? = null,
@@ -107,9 +109,13 @@ class GatewaySync(
             if (id.isEmpty()) return null
             // 0/缺省 = 服务端未声明 → null，由 LLMModel 侧兜底
             fun positive(key: String): Int? = entry.optInt(key, 0).takeIf { it > 0 }
+            val displayName = entry.optString("display_name", "").ifEmpty { id }
+            // 旧网关没有 display_name_en → 回退中文，避免展示层出现空名
+            val displayNameEn = entry.optString("display_name_en", "").ifEmpty { displayName }
             return GatewayTier(
                 id = id,
-                displayName = entry.optString("display_name", id),
+                displayName = displayName,
+                displayNameEn = displayNameEn,
                 isDefault = entry.optBoolean("is_default", false),
                 contextWindow = positive("context_window"),
                 maxOutputTokens = positive("max_output_tokens"),
@@ -168,6 +174,7 @@ class GatewaySync(
             LLMModel(
                 id = tier.id,
                 displayName = tier.displayName,
+                displayNameEn = tier.displayNameEn,
                 provider = PROVIDER_NAME,
                 contextWindow = tier.contextWindow,
                 maxOutputTokens = tier.maxOutputTokens,
@@ -180,9 +187,15 @@ class GatewaySync(
             } else {
                 "${tier.displayName} (图片)"
             }
+            val displayNameEn = if (tier.displayNameEn.contains("Image", ignoreCase = true)) {
+                tier.displayNameEn
+            } else {
+                "${tier.displayNameEn} (Image)"
+            }
             LLMModel(
                 id = tierId,
                 displayName = displayName,
+                displayNameEn = displayNameEn,
                 provider = PROVIDER_NAME,
                 inputModalities = listOf("text", "image"),
                 outputModalities = listOf("image"),
@@ -197,9 +210,15 @@ class GatewaySync(
             } else {
                 "${tier.displayName} (视频)"
             }
+            val displayNameEn = if (tier.displayNameEn.contains("Video", ignoreCase = true)) {
+                tier.displayNameEn
+            } else {
+                "${tier.displayNameEn} (Video)"
+            }
             LLMModel(
                 id = tierId,
                 displayName = displayName,
+                displayNameEn = displayNameEn,
                 provider = PROVIDER_NAME,
                 inputModalities = listOf("text", "image"),
                 outputModalities = listOf("video"),

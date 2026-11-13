@@ -83,7 +83,7 @@ struct ModelQuickTestSheet: View {
                 .background(Color.accentColor.opacity(0.12))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.model.displayName).font(.headline)
+                Text(entry.model.localizedDisplayName).font(.headline)
                 Text(entry.model.id).font(.caption2).foregroundStyle(.secondary)
             }
             Spacer()

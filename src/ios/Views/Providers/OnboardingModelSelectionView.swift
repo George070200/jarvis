@@ -40,7 +40,7 @@ struct OnboardingModelSelectionView: View {
                 let instanceIds = store.instances.filter(\.isEnabled).map(\.id)
                 ForEach(instanceIds, id: \.self) { instanceId in
                     let entries = store.visibleEntries(for: instanceId).filter { entry in
-                        searchText.isEmpty || entry.model.displayName.localizedCaseInsensitiveContains(searchText)
+                        searchText.isEmpty || entry.model.displayName.localizedCaseInsensitiveContains(searchText) || (entry.model.displayNameEn ?? "").localizedCaseInsensitiveContains(searchText)
                     }
                     if !entries.isEmpty, let instance = store.instance(for: instanceId) {
                         Section {
@@ -97,7 +97,7 @@ struct OnboardingModelSelectionView: View {
                             .foregroundStyle(.white)
                     }
                 }
-                Text(entry.model.displayName)
+                Text(entry.model.localizedDisplayName)
                     .font(.body)
                     .foregroundStyle(Color(UIColor.label))
                 Spacer()

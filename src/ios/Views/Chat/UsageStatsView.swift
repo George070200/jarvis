@@ -251,7 +251,7 @@ struct UsageStatsView: View {
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(model.displayName)
+                                        Text(model.localizedDisplayName)
                                         // Say why whenever the number is not a
                                         // straight measurement. Silence is what
                                         // let re-attributed totals pass as fact.

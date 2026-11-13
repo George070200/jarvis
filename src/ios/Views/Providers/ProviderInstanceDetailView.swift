@@ -144,7 +144,7 @@ struct ProviderInstanceDetailView: View {
                 pendingDeleteModelEntry = nil
             }
         } message: { entry in
-            Text("Are you sure you want to delete \"\(entry.model.displayName)\"? This action cannot be undone.")
+            Text("Are you sure you want to delete \"\(entry.model.localizedDisplayName)\"? This action cannot be undone.")
         }
     }
 
@@ -775,7 +775,7 @@ struct ProviderInstanceDetailView: View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 5) {
-                    Text(entry.model.displayName)
+                    Text(entry.model.localizedDisplayName)
                         .font(.subheadline)
                         .foregroundStyle(isHidden ? .secondary : .primary)
                     modalityIcons(for: entry.model)
@@ -825,7 +825,7 @@ struct ProviderInstanceDetailView: View {
         .contextMenu {
             Button {
                 UIPasteboard.general.string = "entry:\(entry.compositeKey)"
-                MinisToast.show(AppLocalized("Copied: \(entry.model.displayName)"))
+                MinisToast.show(AppLocalized("Copied: \(entry.model.localizedDisplayName)"))
             } label: {
                 Label(AppLocalized("Copy Shortcut Model ID"), systemImage: "link")
             }

@@ -105,7 +105,7 @@ struct AgentLoopModelsSection: View {
                 .frame(width: 16)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text(entry.model.displayName)
+                Text(entry.model.localizedDisplayName)
                     .font(.subheadline)
                 HStack(spacing: 4) {
                     if let instance = store.instance(for: entry.providerInstanceId) {
@@ -243,7 +243,7 @@ struct AddAgentLoopGroupsSheet: View {
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color(UIColor.label))
                             let entries = group.memberEntryIds.compactMap { store.entry(for: $0) }
-                            let names = entries.prefix(3).map(\.model.displayName)
+                            let names = entries.prefix(3).map(\.model.localizedDisplayName)
                             let suffix = entries.count > 3 ? " +\(entries.count - 3)" : ""
                             Text(names.joined(separator: ", ") + suffix)
                                 .font(.caption2)

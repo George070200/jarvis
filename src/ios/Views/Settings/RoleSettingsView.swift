@@ -310,7 +310,7 @@ struct RoleEditorView: View {
                     Picker("默认模型", selection: $modelSelection) {
                         Text("跟随默认").tag("")
                         ForEach(ProviderConfigStore.shared.resolvedAgentLoopEntries) { entry in
-                            Text(entry.model.displayName).tag(entry.id)
+                            Text(entry.model.localizedDisplayName).tag(entry.id)
                         }
                     }
                 }

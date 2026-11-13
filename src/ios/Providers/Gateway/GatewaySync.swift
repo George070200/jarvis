@@ -78,7 +78,8 @@ enum GatewaySync {
                 displayName: tier.displayName,
                 provider: providerName,
                 contextWindow: tier.contextWindow,
-                maxOutputTokens: tier.maxOutputTokens
+                maxOutputTokens: tier.maxOutputTokens,
+                displayNameEn: tier.displayNameEn
             )
         }
         let imageModels = imageEntries.map { tier -> LLMModel in
@@ -86,12 +87,16 @@ enum GatewaySync {
             let displayName = (tier.displayName.contains("图") || tier.displayName.localizedCaseInsensitiveContains("image"))
                 ? tier.displayName
                 : "\(tier.displayName) (图片)"
+            let displayNameEn = tier.displayNameEn.localizedCaseInsensitiveContains("image")
+                ? tier.displayNameEn
+                : "\(tier.displayNameEn) (Image)"
             var model = LLMModel(
                 id: tierId,
                 displayName: displayName,
                 provider: providerName,
                 contextWindow: tier.contextWindow,
-                maxOutputTokens: tier.maxOutputTokens
+                maxOutputTokens: tier.maxOutputTokens,
+                displayNameEn: displayNameEn
             )
             model.modalityOverride = [.textInput, .imageInput, .imageOutput]
             return model
@@ -101,12 +106,16 @@ enum GatewaySync {
             let displayName = (tier.displayName.contains("视") || tier.displayName.localizedCaseInsensitiveContains("video"))
                 ? tier.displayName
                 : "\(tier.displayName) (视频)"
+            let displayNameEn = tier.displayNameEn.localizedCaseInsensitiveContains("video")
+                ? tier.displayNameEn
+                : "\(tier.displayNameEn) (Video)"
             var model = LLMModel(
                 id: tierId,
                 displayName: displayName,
                 provider: providerName,
                 contextWindow: tier.contextWindow,
-                maxOutputTokens: tier.maxOutputTokens
+                maxOutputTokens: tier.maxOutputTokens,
+                displayNameEn: displayNameEn
             )
             model.modalityOverride = [.textInput, .imageInput, .videoOutput]
             return model
@@ -144,6 +153,8 @@ enum GatewaySync {
     struct GatewayTier {
         let id: String
         let displayName: String
+        /// 英文显示名；旧网关没有 display_name_en 时回退中文名。
+        let displayNameEn: String
         let isDefault: Bool
         /// 0/缺省 = 服务端未声明 → nil
         let contextWindow: Int?
@@ -172,7 +183,9 @@ enum GatewaySync {
 
     private static func parseTier(_ entry: [String: Any]) -> GatewayTier? {
         guard let id = entry["id"] as? String, !id.isEmpty else { return nil }
-        let displayName = (entry["display_name"] as? String) ?? id
+        let displayName = (entry["display_name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? id
+        // 旧网关没有 display_name_en → 回退中文，避免展示层出现空名
+        let displayNameEn = (entry["display_name_en"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? displayName
         let isDefault = (entry["is_default"] as? Bool) ?? false
         // 0/缺省 = 服务端未声明 → nil，交给 LLMModel 侧兜底
         func positive(_ key: String) -> Int? {
@@ -182,6 +195,7 @@ enum GatewaySync {
         return GatewayTier(
             id: id,
             displayName: displayName,
+            displayNameEn: displayNameEn,
             isDefault: isDefault,
             contextWindow: positive("context_window"),
             maxOutputTokens: positive("max_output_tokens")

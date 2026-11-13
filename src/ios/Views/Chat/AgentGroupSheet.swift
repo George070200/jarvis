@@ -351,7 +351,7 @@ private struct AgentGroupEditForm: View {
         guard let ref = modelOverride else { return "" }
         let store = ProviderConfigStore.shared
         return store.visibleEntries(for: ref.providerInstanceId)
-            .first { $0.baseModel.id == ref.modelId }?.model.displayName ?? ref.modelId
+            .first { $0.baseModel.id == ref.modelId }?.model.localizedDisplayName ?? ref.modelId
     }
 }
 
@@ -409,7 +409,7 @@ private struct GroupModelPicker: View {
                     onPick(AgentGroupModelRef(modelId: entry.baseModel.id, providerInstanceId: entry.providerInstanceId))
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(entry.model.displayName)
+                        Text(entry.model.localizedDisplayName)
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                         Text(entry.baseModel.id)

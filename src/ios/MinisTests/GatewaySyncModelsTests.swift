@@ -72,6 +72,30 @@ final class GatewaySyncModelsTests: XCTestCase {
         XCTAssertNil(office?.maxOutputTokens)
     }
 
+    func testParsesEnglishDisplayName() {
+        let json: [String: Any] = [
+            "data": [
+                ["id": "auto", "kind": "chat", "display_name": "贾维斯 (自动)", "display_name_en": "Jarvis (Auto)"],
+                ["id": "office", "kind": "chat", "display_name": "办公友好", "display_name_en": "Office friendly"],
+            ],
+        ]
+
+        let tiers = GatewaySync.pickModels(json, kind: "chat")
+        XCTAssertEqual(tiers.first { $0.id == "auto" }?.displayName, "贾维斯 (自动)")
+        XCTAssertEqual(tiers.first { $0.id == "auto" }?.displayNameEn, "Jarvis (Auto)")
+        XCTAssertEqual(tiers.first { $0.id == "office" }?.displayNameEn, "Office friendly")
+    }
+
+    func testFallsBackEnglishNameToChineseWhenGatewayOmitsIt() {
+        let json: [String: Any] = [
+            "data": [["id": "auto", "kind": "chat", "display_name": "贾维斯 (自动)"]],
+        ]
+
+        let tier = GatewaySync.pickModels(json, kind: "chat").first
+        XCTAssertEqual(tier?.displayName, "贾维斯 (自动)")
+        XCTAssertEqual(tier?.displayNameEn, "贾维斯 (自动)")
+    }
+
     func testEmptyWhenDataMissing() {
         XCTAssertTrue(GatewaySync.pickModels(["object": "list"], kind: "chat").isEmpty)
     }

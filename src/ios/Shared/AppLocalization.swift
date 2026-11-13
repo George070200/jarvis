@@ -55,6 +55,24 @@ enum AppBundle {
     }
 }
 
+/// 当前生效的 app 语言（包含设置页的 in-app 覆盖）。
+///
+/// iOS 的语言覆盖走 `Bundle.setLanguage` + `AppleLanguages`（见 MinisApp.swift），
+/// 不一定会反映到 `Locale.current`，所以这里优先读设置页写入的 AppleLanguages。
+enum AppLanguage {
+    static var currentCode: String {
+        if let code = UserDefaults.standard.array(forKey: "AppleLanguages")?.first as? String,
+           !code.isEmpty {
+            return code
+        }
+        return Locale.current.language.languageCode?.identifier ?? "en"
+    }
+
+    static var prefersChinese: Bool {
+        currentCode.lowercased().hasPrefix("zh")
+    }
+}
+
 /// Localized string that follows the in-app language override.
 ///
 /// Drop-in replacement for `String(localized:)`. Prefer this over

@@ -46,6 +46,7 @@ import com.jarvis.app.data.model.ModelEntry
 import com.jarvis.app.data.model.ModelGroup
 import com.jarvis.app.data.model.ProviderInstance
 import com.jarvis.app.data.model.ProviderType
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.data.repository.ProviderRepository
 import com.jarvis.app.ui.components.MinisButton
 import com.jarvis.app.ui.components.MinisTextButton
@@ -233,7 +234,7 @@ private fun ModelSelectionStep(
     }
     val filteredEntries = if (searchText.isBlank()) allEntries else {
         val q = searchText.lowercase()
-        allEntries.filter { it.model.displayName.lowercase().contains(q) || it.model.id.lowercase().contains(q) }
+        allEntries.filter { it.model.displayName.lowercase().contains(q) || (it.model.displayNameEn ?: "").lowercase().contains(q) || it.model.id.lowercase().contains(q) }
     }
 
     // Group by instance
@@ -324,7 +325,7 @@ private fun ModelSelectionStep(
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(entry.model.displayName, style = MaterialTheme.typography.bodyMedium)
+                                Text(entry.model.localizedName(), style = MaterialTheme.typography.bodyMedium)
                                 Text(
                                     entry.model.id,
                                     style = MaterialTheme.typography.bodySmall,

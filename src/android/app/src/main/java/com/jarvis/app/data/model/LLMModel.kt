@@ -37,6 +37,15 @@ data class LLMModel(
     // Mirrors iOS ModelModality flags. When null, treat as text-in/text-out only.
     val inputModalities: List<String>? = null,
     val outputModalities: List<String>? = null,
+    /**
+     * 英文显示名。网关档位会同时下发中英文名（/v1/models 的 display_name /
+     * display_name_en），同步时两个都存下来，界面按当前语言取，切换语言无需联网重同步。
+     * 其他 provider / 旧数据为 null，回退 [displayName]。
+     *
+     * 放在参数列表末尾：LLMModel 有大量位置参数调用（`LLMModel(id, name, provider)`），
+     * 放在中间会改变现有位置参数的含义。默认值保证旧 JSON 解码安全。
+     */
+    val displayNameEn: String? = null,
 ) {
     companion object {
         // Anthropic — mirrors iOS LLMTypes.swift allAnthropic.

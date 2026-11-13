@@ -262,6 +262,7 @@ import com.mikepenz.markdown.m3.markdownTypography
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.ast.getTextInNode
 import com.jarvis.app.data.model.LLMModel
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.data.model.ModelEntry
 import com.jarvis.app.data.model.ModelGroup
 import com.jarvis.app.data.model.ProviderConfig
@@ -368,7 +369,9 @@ internal fun ModelPickerSheet(
                 }
                 val filtered = if (searchText.isEmpty()) entries
                 else entries.filter {
-                    fuzzyMatch(it.model.displayName, searchText) || fuzzyMatch(it.model.id, searchText)
+                    fuzzyMatch(it.model.displayName, searchText) ||
+                        fuzzyMatch(it.model.displayNameEn ?: "", searchText) ||
+                        fuzzyMatch(it.model.id, searchText)
                 }
                 val pms = (System.nanoTime() - pt) / 1_000_000.0
                 if (filtered.isNotEmpty()) {
@@ -674,7 +677,7 @@ internal fun ModelPickerSheet(
                                         // iOS: "→ ModelName" resolved entry
                                         if (resolvedEntry != null) {
                                             Text(
-                                                "→ ${resolvedEntry.model.displayName}",
+                                                "→ ${resolvedEntry.model.localizedName()}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                             )
@@ -835,7 +838,7 @@ internal fun ModelPickerSheet(
                                                 )
                                                 Spacer(Modifier.width(8.dp))
                                                 Column(modifier = Modifier.weight(1f)) {
-                                                    Text(entry.model.displayName, style = MaterialTheme.typography.bodyMedium)
+                                                    Text(entry.model.localizedName(), style = MaterialTheme.typography.bodyMedium)
                                                     Row {
                                                         if (instance != null) {
                                                             Text(
@@ -1029,7 +1032,7 @@ internal fun ModelPickerSheet(
                                                 itemVerticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Text(
-                                                    displayEntry.model.displayName,
+                                                    displayEntry.model.localizedName(),
                                                     style = MaterialTheme.typography.bodyMedium,
                                                 )
                                                 com.jarvis.app.ui.components.modalityBadges(displayEntry.model).forEach { badge ->
@@ -1146,7 +1149,7 @@ internal fun ModelPickerSheet(
                                             Spacer(Modifier.width(10.dp))
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
-                                                    entry.model.displayName,
+                                                    entry.model.localizedName(),
                                                     style = MaterialTheme.typography.bodyMedium,
                                                 )
                                                 // [T-android-provider-voice] Modality

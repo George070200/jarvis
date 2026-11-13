@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import com.jarvis.app.data.model.FallbackStrategy
 import com.jarvis.app.data.model.RoutingStrategy
 import com.jarvis.app.data.model.ThinkingLevel
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.provider.effectiveMaxThinkingLevel
 import com.jarvis.app.data.repository.ProviderRepository
 import com.jarvis.app.R
@@ -333,7 +334,7 @@ fun ModelGroupDetailScreen(
                         ReorderableItem(reorderState, key = entryId) { _ ->
                             ListItem(
                                 modifier = Modifier.alpha(if (providerDisabled) 0.4f else 1f),
-                                headlineContent = { Text(entry.model.displayName) },
+                                headlineContent = { Text(entry.model.localizedName()) },
                                 supportingContent = {
                                     if (providerDisabled) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {

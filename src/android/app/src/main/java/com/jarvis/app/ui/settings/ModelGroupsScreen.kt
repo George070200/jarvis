@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.jarvis.app.data.model.ModelGroup
 import com.jarvis.app.data.model.RoutingStrategy
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.data.repository.ProviderRepository
 import com.jarvis.app.R
 import com.jarvis.app.ui.components.MinisOutlinedButton
@@ -645,7 +646,7 @@ private fun LazyListScope.agentLoopModelsSectionItems(
                         ),
                     ) {
                         AgentLoopRow(
-                            title = entry.model.displayName,
+                            title = entry.model.localizedName(),
                             subtitle = instanceLabel,
                             badge = null,
                             onRemove = { providerRepository.removeAgentLoopEntry(entry.id) },

@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jarvis.app.data.model.ModelGroup
 import com.jarvis.app.data.model.ProviderConfig
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.data.repository.ProviderRepository
 import com.jarvis.app.provider.gateway.GatewaySync
 
@@ -92,7 +93,7 @@ fun OnboardingModelSelectionScreen(
     val filteredEntries = if (searchText.isBlank()) allEntries else {
         val q = searchText.lowercase()
         allEntries.filter {
-            it.model.displayName.lowercase().contains(q) || it.model.id.lowercase().contains(q)
+            it.model.displayName.lowercase().contains(q) || (it.model.displayNameEn ?: "").lowercase().contains(q) || it.model.id.lowercase().contains(q)
         }
     }
     val grouped = filteredEntries.groupBy { it.providerInstanceId }
@@ -207,7 +208,7 @@ fun OnboardingModelSelectionScreen(
                                 Spacer(Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        entry.model.displayName,
+                                        entry.model.localizedName(),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                     Text(

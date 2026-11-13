@@ -85,6 +85,34 @@ class GatewaySyncParseTest {
     }
 
     @Test
+    fun `parses english display name`() {
+        val payload = json(
+            """{"data":[
+              {"id":"auto","kind":"chat","display_name":"贾维斯 (自动)","display_name_en":"Jarvis (Auto)"},
+              {"id":"office","kind":"chat","display_name":"办公友好","display_name_en":"Office friendly"}
+            ]}"""
+        )
+
+        val tiers = GatewaySync.parseModels(payload, "chat")
+        val auto = tiers.first { it.id == "auto" }
+        val office = tiers.first { it.id == "office" }
+
+        assertEquals("贾维斯 (自动)", auto.displayName)
+        assertEquals("Jarvis (Auto)", auto.displayNameEn)
+        assertEquals("办公友好", office.displayName)
+        assertEquals("Office friendly", office.displayNameEn)
+    }
+
+    @Test
+    fun `falls back english name to chinese when gateway omits it`() {
+        val payload = json("""{"data":[{"id":"auto","kind":"chat","display_name":"贾维斯 (自动)"}]}""")
+
+        val auto = GatewaySync.parseModels(payload, "chat").first()
+        assertEquals("贾维斯 (自动)", auto.displayName)
+        assertEquals("贾维斯 (自动)", auto.displayNameEn)
+    }
+
+    @Test
     fun `returns empty when data missing`() {
         assertTrue(GatewaySync.parseModels(json("""{"object":"list"}"""), "chat").isEmpty())
     }

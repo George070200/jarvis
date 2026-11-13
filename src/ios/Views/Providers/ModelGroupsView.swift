@@ -286,7 +286,7 @@ private struct GroupRow: View {
     private var memberSummary: String {
         let entries = group.memberEntryIds.compactMap { store.entry(for: $0) }
         if entries.isEmpty { return AppLocalized("No models") }
-        let names = entries.prefix(3).map(\.model.displayName)
+        let names = entries.prefix(3).map(\.model.localizedDisplayName)
         let suffix = entries.count > 3 ? " +\(entries.count - 3)" : ""
         return names.joined(separator: ", ") + suffix
     }

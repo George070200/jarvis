@@ -281,6 +281,7 @@ import com.mikepenz.markdown.m3.markdownTypography
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.ast.getTextInNode
 import com.jarvis.app.data.model.LLMModel
+import com.jarvis.app.data.model.localizedDisplayName
 import com.jarvis.app.data.model.ModelEntry
 import com.jarvis.app.data.model.ModelGroup
 import com.jarvis.app.data.model.ProviderConfig
@@ -7716,6 +7717,9 @@ fun ChatScreen(
         fun entryById(entryId: String): ModelEntry? =
             config.modelEntries.firstOrNull { it.id == entryId }
 
+        // 档位名按 app 语言取（网关同步同时存了中英文名）。
+        val uiLocale = LocalConfiguration.current.locales[0]
+
         ModelPickerSheet(
             groups = availableGroups,
             selectedGroupId = selectedGroupId,
@@ -7730,7 +7734,7 @@ fun ChatScreen(
                 if (label != null) {
                     pendingNonTextSelection = PendingNonTextSelection.Group(
                         groupId = groupId,
-                        modelDisplayName = firstEntry.model.displayName,
+                        modelDisplayName = firstEntry.model.localizedDisplayName(uiLocale),
                         modalityLabel = label,
                     )
                 } else {
@@ -7745,7 +7749,7 @@ fun ChatScreen(
                     pendingNonTextSelection = PendingNonTextSelection.GroupEntry(
                         groupId = groupId,
                         entryId = entryId,
-                        modelDisplayName = entry.model.displayName,
+                        modelDisplayName = entry.model.localizedDisplayName(uiLocale),
                         modalityLabel = label,
                     )
                 } else {
@@ -7759,7 +7763,7 @@ fun ChatScreen(
                 if (entry != null && label != null) {
                     pendingNonTextSelection = PendingNonTextSelection.Entry(
                         entryId = entryId,
-                        modelDisplayName = entry.model.displayName,
+                        modelDisplayName = entry.model.localizedDisplayName(uiLocale),
                         modalityLabel = label,
                     )
                 } else {

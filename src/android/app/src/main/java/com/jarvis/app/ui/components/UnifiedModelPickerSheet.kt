@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jarvis.app.R
 import com.jarvis.app.data.model.ModelEntry
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.data.model.ModelGroup
 import com.jarvis.app.data.model.SystemVoiceEntries
 import com.jarvis.app.data.model.SystemVoiceIds
@@ -473,7 +474,7 @@ fun UnifiedModelPickerSheet(
                                         )
                                         Spacer(Modifier.width(10.dp))
                                         Text(
-                                            entry.model.displayName.ifBlank { entry.model.id },
+                                            entry.model.localizedName().ifBlank { entry.model.id },
                                             style = MaterialTheme.typography.bodyMedium,
                                             modifier = Modifier.weight(1f, fill = false),
                                         )
@@ -523,7 +524,7 @@ fun UnifiedModelPickerSheet(
 
                 // ── System card ──
                 val systemEntries = modalityFilter.systemEntries()
-                    .filter { matches(it.model.displayName) }
+                    .filter { matches(it.model.displayName) || matches(it.model.displayNameEn ?: "") }
                 if (systemEntries.isNotEmpty()) {
                     item("system_card") {
                         Column(
@@ -568,7 +569,7 @@ fun UnifiedModelPickerSheet(
                                     Spacer(Modifier.width(10.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            entry.model.displayName,
+                                            entry.model.localizedName(),
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = FontWeight.SemiBold,
                                         )
@@ -655,7 +656,7 @@ fun UnifiedModelPickerSheet(
                         val entries = config.modelEntries.filter { e ->
                             e.providerInstanceId == inst.id && !e.isHidden &&
                                 modalityFilter.matches(e.model) &&
-                                (matches(e.model.displayName) || matches(e.model.id))
+                                (matches(e.model.displayName) || matches(e.model.displayNameEn ?: "") || matches(e.model.id))
                         }
                         if (entries.isEmpty()) null else inst to entries
                     }
@@ -747,7 +748,7 @@ fun UnifiedModelPickerSheet(
                                         Spacer(Modifier.width(10.dp))
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                entry.model.displayName.ifBlank { entry.model.id },
+                                                entry.model.localizedName().ifBlank { entry.model.id },
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 fontWeight = FontWeight.SemiBold,
                                             )

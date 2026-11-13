@@ -79,7 +79,7 @@ struct SessionModelPicker: View {
                 }
             }
         } message: { selection in
-            Text(AppLocalized("\(selection.entry.model.displayName) outputs \(selection.modalityLabel) and usually can't drive an Agent task. Pick a text-output model for the session, or add this model to Available Models in Agent Loop so the agent can call it via minis-model-use when it needs to generate \(selection.modalityLabel)."))
+            Text(AppLocalized("\(selection.entry.model.localizedDisplayName) outputs \(selection.modalityLabel) and usually can't drive an Agent task. Pick a text-output model for the session, or add this model to Available Models in Agent Loop so the agent can call it via minis-model-use when it needs to generate \(selection.modalityLabel)."))
         }
     }
 
@@ -205,7 +205,7 @@ struct SessionModelDisplay {
         switch binding.primarySource {
         case .directEntry(let entryId, _):
             if let entry = store.entry(for: entryId) {
-                return entry.model.displayName
+                return entry.model.localizedDisplayName
             }
             return entryId
         case .group(let groupId, _):
@@ -230,7 +230,7 @@ struct SessionModelDisplay {
 
         guard let entry = store.entry(for: entryId),
               let instance = store.instance(for: entry.providerInstanceId) else { return nil }
-        return (instance.label, entry.model.displayName)
+        return (instance.label, entry.model.localizedDisplayName)
     }
 
     private func defaultResolvedDetail() -> (providerLabel: String, modelName: String)? {
@@ -286,12 +286,12 @@ struct SessionModelDisplay {
             return (instance, entry)
         }.first
         if let (instance, entry) = resolved {
-            return (instance.label, entry.model.displayName)
+            return (instance.label, entry.model.localizedDisplayName)
         }
         guard let firstEntryId = group.memberEntryIds.first,
               let entry = store.entry(for: firstEntryId),
               let instance = store.instance(for: entry.providerInstanceId) else { return nil }
-        return (instance.label, entry.model.displayName)
+        return (instance.label, entry.model.localizedDisplayName)
     }
 
     func isGroupBound(for sessionId: String?) -> Bool {

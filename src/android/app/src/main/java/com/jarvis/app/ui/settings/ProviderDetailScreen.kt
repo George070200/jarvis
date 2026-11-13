@@ -65,6 +65,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.jarvis.app.data.model.ProviderType
+import com.jarvis.app.data.model.localizedName
 import com.jarvis.app.data.repository.ProviderRepository
 import com.jarvis.app.logging.AppLogger
 import com.jarvis.app.ui.components.MinisAlertDialog
@@ -654,7 +655,7 @@ fun ProviderDetailScreen(
                     val hasBadge = inputModalities.any { it in modalityIconKeys } ||
                         outputModalities.any { it in modalityOutputIconKeys }
                     SettingsRow(
-                        title = entry.model.displayName,
+                        title = entry.model.localizedName(),
                         subtitle = buildString {
                             append(entry.model.id)
                             if (entry.isHidden) append(" • Hidden")
@@ -810,7 +811,7 @@ fun ProviderDetailScreen(
         MinisAlertDialog(
             onDismissRequest = { entryToDelete = null },
             title = stringResource(R.string.provider_detail_delete_model),
-            text = stringResource(R.string.provider_detail_delete_model_confirm, e.model.displayName),
+            text = stringResource(R.string.provider_detail_delete_model_confirm, e.model.localizedName()),
             confirmText = stringResource(R.string.common_delete),
             isDestructive = true,
             onConfirm = {

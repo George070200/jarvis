@@ -47,6 +47,10 @@ struct ModelCapabilities: Sendable, Codable, Hashable {
 struct LLMModel: Equatable, Hashable, Identifiable, Sendable, Codable {
     let id: String
     let displayName: String
+    /// 英文显示名。网关档位会同时下发中英文名（/v1/models 的 display_name /
+    /// display_name_en），同步时两个都存下来，界面按当前语言取，切换语言无需
+    /// 联网重同步。其他 provider / 旧数据为 nil，回退 displayName。
+    var displayNameEn: String?
     let provider: String
     /// Per-model modality override. When set, takes precedence over provider-level capabilities.
     var modalityOverride: ModelModality?
@@ -110,9 +114,11 @@ struct LLMModel: Equatable, Hashable, Identifiable, Sendable, Codable {
     init(id: String, displayName: String, provider: String, modalityOverride: ModelModality? = nil,
          contextWindow: Int? = nil, maxOutputTokens: Int? = nil,
          supportsReasoning: Bool? = nil, interleavedReasoningField: String? = nil,
-         reasoningEffortValues: [String]? = nil, declaresNoEffortTiers: Bool? = nil) {
+         reasoningEffortValues: [String]? = nil, declaresNoEffortTiers: Bool? = nil,
+         displayNameEn: String? = nil) {
         self.id = id
         self.displayName = displayName
+        self.displayNameEn = displayNameEn
         self.provider = provider
         self.modalityOverride = modalityOverride
         self.contextWindow = contextWindow
@@ -911,6 +917,17 @@ extension LLMModel {
         ]
         let set = Set(declared.map { $0.lowercased() })
         return mapping.filter { set.contains($0.wire) }.map(\.level)
+    }
+
+    /// 按当前 app 语言取显示名。
+    ///
+    /// 网关档位会同时下发中英文名（displayName / displayNameEn）；展示时按语言
+    /// 选择而不是同步时写死，切换语言无需联网重新同步。
+    /// 中文（zh*）用 displayName；其他语言优先 displayNameEn，缺失时回退。
+    var localizedDisplayName: String {
+        let en = displayNameEn?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !en.isEmpty else { return displayName }
+        return AppLanguage.prefersChinese ? displayName : en
     }
 }
 

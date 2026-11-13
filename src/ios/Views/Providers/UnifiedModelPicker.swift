@@ -396,7 +396,7 @@ struct UnifiedModelPicker: View {
         guard !searchText.isEmpty else { return entriesByInstance }
         return entriesByInstance.compactMap { item in
             let filtered = item.entries.filter { entry in
-                fuzzyMatch(entry.model.displayName) || fuzzyMatch(entry.model.id)
+                fuzzyMatch(entry.model.displayName) || fuzzyMatch(entry.model.displayNameEn ?? "") || fuzzyMatch(entry.model.id)
             }
             return filtered.isEmpty ? nil : (item.instance, filtered)
         }
@@ -415,7 +415,7 @@ struct UnifiedModelPicker: View {
             guard !searchText.isEmpty else { return [g] }
             if fuzzyMatch(g.name) { return [g] }
             let memberMatch = g.memberEntryIds.contains { id in
-                store.entry(for: id).map { fuzzyMatch($0.model.displayName) } ?? false
+                store.entry(for: id).map { fuzzyMatch($0.model.displayName) || fuzzyMatch($0.model.displayNameEn ?? "") } ?? false
             }
             return memberMatch ? [g] : []
         case .none:
@@ -550,7 +550,7 @@ struct UnifiedModelPicker: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
-        .accessibilityLabel(Text("Quick Test \(entry.model.displayName)"))
+        .accessibilityLabel(Text("Quick Test \(entry.model.localizedDisplayName)"))
     }
 
     /// Nested multi-select picker for "Create group from models…". The voice
@@ -720,7 +720,7 @@ struct UnifiedModelPicker: View {
         } else if isGroupSelected(group),
                   let eid = config.currentEntryId?(),
                   let entry = store.entry(for: eid) {
-            Text("→ \(entry.model.displayName)")
+            Text("→ \(entry.model.localizedDisplayName)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
@@ -886,7 +886,7 @@ struct UnifiedModelPicker: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
-                    Text(entry.model.displayName)
+                    Text(entry.model.localizedDisplayName)
                         .font(.subheadline)
                         .foregroundStyle(disabled ? Color(UIColor.tertiaryLabel) : Color(UIColor.label))
                     if disabled {
@@ -937,7 +937,7 @@ struct UnifiedModelPicker: View {
         .contextMenu {
             Button {
                 UIPasteboard.general.string = "entry:\(entry.compositeKey)"
-                MinisToast.show(AppLocalized("Copied: \(entry.model.displayName)"))
+                MinisToast.show(AppLocalized("Copied: \(entry.model.localizedDisplayName)"))
             } label: {
                 Label(AppLocalized("Copy Shortcut Model ID"), systemImage: "link")
             }
@@ -957,7 +957,7 @@ struct UnifiedModelPicker: View {
                     .opacity(0.4)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(entry.model.displayName)
+                    Text(entry.model.localizedDisplayName)
                         .font(.subheadline)
                         .foregroundStyle(Color(UIColor.tertiaryLabel))
                     HStack(spacing: 4) {
@@ -1091,7 +1091,7 @@ struct UnifiedModelPicker: View {
                     .frame(width: 14)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(entry.model.displayName)
+                    Text(entry.model.localizedDisplayName)
                         .font(.subheadline)
                         .foregroundStyle(disabled ? Color(UIColor.tertiaryLabel) : Color(UIColor.label))
                     HStack(spacing: 4) {
@@ -1152,7 +1152,7 @@ struct UnifiedModelPicker: View {
         .contextMenu {
             Button {
                 UIPasteboard.general.string = "entry:\(entry.compositeKey)"
-                MinisToast.show(AppLocalized("Copied: \(entry.model.displayName)"))
+                MinisToast.show(AppLocalized("Copied: \(entry.model.localizedDisplayName)"))
             } label: {
                 Label(AppLocalized("Copy Shortcut Model ID"), systemImage: "link")
             }
