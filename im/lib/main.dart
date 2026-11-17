@@ -99,7 +99,15 @@ void main(List<String> args) async {
   if (kIsWeb) {
     web.window.addEventListener('message', (web.Event e) {
       final m = e as web.MessageEvent;
-      if (m.origin != web.window.location.origin) return;
+      // 桌面端宿主（Electron 主窗口）是 file:// 页面，postMessage 的
+      // origin 是 opaque 的 "null"，不能按同源过滤——否则父窗口的
+      // im/open、im/forward 消息会被丢弃（内嵌模式下 IM 一直空白/无响应）。
+      final origin = m.origin;
+      if (origin != web.window.location.origin &&
+          origin != 'null' &&
+          origin != 'file://') {
+        return;
+      }
       // m.data is a JS object on web; JsObject is not exported by universal_html,
       // so use dynamic property access (kIsWeb-only block, never runs on VM).
       final d = (m.data as dynamic)['type'];
@@ -109,7 +117,32 @@ void main(List<String> args) async {
           FluffyChatApp.router.go('/rooms/newprivatechat#$mxid');
         });
       }
+      if (d == 'im/forward') {
+        // 桌面端 Agent 对话一键转发：文本作为草稿预填，由用户选好友/群
+        // 并编辑后手动发送（房间选择器复用 '/rooms' 的 share-items 通道）。
+        final text = ((m.data as dynamic)['text'] as String?) ?? '';
+        if (text.isNotEmpty) {
+          // ack 让父窗口知道本次转发已被接收（ImView 据此清掉待转发文本）。
+          // 载荷必须是 JSON 字符串：Dart Map 经结构化克隆可能抛
+          // DataCloneError（与既有 matrix-credentials 消息同一模式）。
+          web.window.parent?.postMessage(
+            jsonEncode({'type': 'im/forward-ack'}),
+            '*',
+          );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            FluffyChatApp.router.go(
+              '/rooms',
+              extra: [DraftShareItem(text)],
+            );
+          });
+        }
+      }
     }, true);
+    // 监听器注册完成即上报就绪：父窗口（ImView）若有因早发而未送达的
+    // im/forward 草稿，会在此刻重发，避免时序竞争丢失转发内容。
+    // 注意必须放在回调外——只在启动时发一次，而不是每收到一条消息都发。
+    // 载荷用 JSON 字符串（Dart Map 经结构化克隆可能抛 DataCloneError）。
+    web.window.parent?.postMessage(jsonEncode({'type': 'im/ready'}), '*');
   }
 
   final store = await AppSettings.init();

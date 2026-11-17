@@ -65,6 +65,16 @@ class ImFlutterActivity : FlutterActivity() {
                         result.success(null)
                         finish()
                     }
+                    "forwardToAgent" -> {
+                        // [T-im-forward] IM 转发到 Agent：收下文本后收起 IM，
+                        // 打开转发落点选择器（选角色 → 新建/历史会话）。
+                        result.success(null)
+                        val text = call.argument<String>("text") ?: ""
+                        if (text.isNotBlank()) {
+                            ImForwardActivity.start(this, text)
+                            finish()
+                        }
+                    }
                     "translate" -> {
                         val text = call.argument<String>("text") ?: ""
                         val target = call.argument<String>("target") ?: "en"

@@ -1804,6 +1804,8 @@
     <string name="role_entry_view_history">查看此角色的历史会话</string>
     <!-- [T-role-forward] 跨会话消息转发 -->
     <string name="forward_to_role">转发到角色会话</string>
+    <string name="forward_to_im">转发到IM</string>
+    <string name="forward">转发</string>
     <string name="forward_select_role">选择角色</string>
     <string name="forward_select_target">选择目标</string>
     <string name="forward_new_session">新建会话</string>

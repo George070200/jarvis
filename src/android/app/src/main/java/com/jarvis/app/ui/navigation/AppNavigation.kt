@@ -15,6 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.withStateAtLeast
 import com.jarvis.app.deeplink.DeepLinkAction
 import com.jarvis.app.deeplink.DeepLinkCoordinator
 import com.jarvis.app.ui.settings.KEY_LAUNCH_SESSION
@@ -245,10 +248,14 @@ fun AppNavigation(
     }
 
     // Handle initial deep link after composition
+    // 注意：这里不能用 safeNavigate——它的 RESUMED 守卫会吞掉冷启动导航：
+    // LaunchedEffect 首帧触发时 startDestination 尚未 RESUMED，深链会被
+    // 静默丢弃（表现为转发/通知落地后停在会话列表）。初始深链是组合期
+    // 一次性动作，不存在 safeNavigate 针对的"连点转场"竞态。
     LaunchedEffect(initialDeepLink) {
         when (initialDeepLink) {
             is DeepLinkAction.OpenTerminal -> {
-                navController.safeNavigate(Routes.terminal(initialDeepLink.initCommand))
+                navController.navigate(Routes.terminal(initialDeepLink.initCommand))
             }
             is DeepLinkAction.OpenSession -> {
                 // T-double-chat-fix: on process-death recreation NavController
@@ -260,7 +267,7 @@ fun AppNavigation(
                 // restoreState=true preserves chat-screen state across the
                 // hop. When the synthesized deep-link is a no-op (chat
                 // already on top) launchSingleTop short-circuits.
-                navController.safeNavigate(Routes.chat(initialDeepLink.sessionId)) {
+                navController.navigate(Routes.chat(initialDeepLink.sessionId)) {
                     popUpTo(Routes.SESSION_LIST) {
                         inclusive = false
                         saveState = true
@@ -275,13 +282,13 @@ fun AppNavigation(
                     initialDeepLink.value,
                     initialDeepLink.note,
                 )
-                navController.safeNavigate(Routes.ENV_VARS)
+                navController.navigate(Routes.ENV_VARS)
             }
             // T183: any settings screen reachable by route string. The
             // parser already resolved the path �?route mapping so we
             // just navigate.
             is DeepLinkAction.OpenSettingsScreen -> {
-                navController.safeNavigate(initialDeepLink.route)
+                navController.navigate(initialDeepLink.route)
             }
             is DeepLinkAction.OpenPermissionSettings -> {
                 navController.safeNavigate(Routes.PERMISSIONS)
@@ -302,6 +309,32 @@ fun AppNavigation(
                 // Nothing to do here �?see startDestination block below.
             }
             else -> {}
+        }
+    }
+
+    // [T-im-forward] 转发完成后的目标会话导航：组合层收集进程级挂起值。
+    // 不能在 Activity 的 onNewIntent/onResume 里导航——ImForwardActivity
+    // startActivity 后立刻 finish，任务切换/重建期间 Activity 时机导航的
+    // 结果会被丢弃；且 StateFlow 在挂起值设置瞬间（Activity 还 STOPPED）
+    // 就会触发收集，因此这里必须挂起等待 RESUMED 后再 navigate。
+    // LocalLifecycleOwner.current 是 @Composable 调用，只能在组合期获取。
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        val lifecycle = lifecycleOwner.lifecycle
+        android.util.Log.i("DeepLink", "session collector active")
+        com.jarvis.app.deeplink.DeepLinkCoordinator.pendingSessionOpen.collect {
+            android.util.Log.i("DeepLink", "collector value=${it?.first}")
+            val sessionId = com.jarvis.app.deeplink.DeepLinkCoordinator.freshPendingSessionOpen()
+            if (sessionId != null) {
+                kotlinx.coroutines.delay(250)
+                lifecycle.withStateAtLeast(Lifecycle.State.RESUMED) {
+                    android.util.Log.i("DeepLink", "collector navigate → $sessionId")
+                    // 注意：不能加 launchSingleTop——所有 chat 会话共享同一
+                    // destination（chat/{sessionId}），栈顶已是 chat 时
+                    // singleTop 会把导航折叠成 no-op，新参数根本不入栈。
+                    navController.navigate(Routes.chat(sessionId))
+                }
+            }
         }
     }
 

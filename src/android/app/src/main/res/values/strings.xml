@@ -1976,6 +1976,8 @@
     <string name="role_entry_view_history">View this role\'s chats</string>
     <!-- [T-role-forward] Cross-session message forwarding -->
     <string name="forward_to_role">Forward to role chat</string>
+    <string name="forward_to_im">Forward to IM</string>
+    <string name="forward">Forward</string>
     <string name="forward_select_role">Choose a role</string>
     <string name="forward_select_target">Choose destination</string>
     <string name="forward_new_session">New chat</string>

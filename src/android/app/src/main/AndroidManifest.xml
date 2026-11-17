@@ -559,6 +559,15 @@
             android:theme="@style/Theme.Jarvis"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- [T-im-forward] IM「贾维斯」转发的落点选择器：
+             选角色 → 新建会话/历史会话 → 附言 → 注入目标会话。
+             adjustResize + imePadding：附言输入时键盘不遮挡底部转发按钮。 -->
+        <activity
+            android:name=".im.ImForwardActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Jarvis"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- [T-im-deeplink] Exported trampoline for IM deep-link intent-filters.
              ImFlutterActivity must stay exported=false: cold-launching a
              FlutterActivity without the flutter_engine_id extra creates a

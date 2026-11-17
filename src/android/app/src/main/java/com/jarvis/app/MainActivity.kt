@@ -697,8 +697,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+
         // T51: warm-start share — ShareReceiverActivity re-launches with
         // FLAG_ACTIVITY_CLEAR_TOP, which delivers the new intent here when
         // MainActivity is already alive. Process the buffered share before
@@ -711,24 +716,24 @@ class MainActivity : ComponentActivity() {
 
     private fun handleDeepLink(uri: Uri?) {
         val action = DeepLinkHandler.parse(uri)
-        val nav = navController ?: return
+        AppLogger.info("DeepLink", "handleDeepLink uri=$uri action=$action")
+        android.util.Log.i("DeepLink", "handleDeepLink uri=$uri action=$action")
+        val nav = navController ?: run {
+            AppLogger.warning("DeepLink", "navController null, deep link dropped")
+            android.util.Log.w("DeepLink", "navController null, deep link dropped")
+            return
+        }
         when (action) {
             is DeepLinkAction.OpenTerminal -> {
                 nav.navigate(Routes.terminal(action.initCommand))
             }
             is DeepLinkAction.OpenSession -> {
-                // T-double-chat-fix (secondary): mirror AppNavigation's
-                // OpenSession options so a runtime deep-link (notification /
-                // shortcut / onNewIntent) can't stack a duplicate chat on
-                // top of the same chat that's already showing.
-                nav.navigate(Routes.chat(action.sessionId)) {
-                    popUpTo(Routes.SESSION_LIST) {
-                        inclusive = false
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
+                AppLogger.info("DeepLink", "OpenSession → ${action.sessionId}")
+                android.util.Log.i("DeepLink", "OpenSession → ${action.sessionId}")
+                // 挂起到进程级 Coordinator，由 AppNavigation 组合层收集并
+                // 导航（组合层导航在任务切换/重建下可靠；Activity 时机
+                // navigate 的结果会被任务过渡丢弃）。见 DeepLinkCoordinator。
+                DeepLinkCoordinator.setPendingSessionOpen(action.sessionId)
             }
             is DeepLinkAction.CreateEnvironmentVariable -> {
                 DeepLinkCoordinator.setPendingEnvVarCreate(action.key, action.value, action.note)

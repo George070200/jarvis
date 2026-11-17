@@ -6690,6 +6690,29 @@ class ChatViewModel(
         return targetId
     }
 
+    /**
+     * [T-im-forward] 把选中消息序列化为纯文本草稿（每条一段，空行分隔），
+     * 供「转发到IM」经 [com.jarvis.app.im.ImLauncher.openImShare] 交给 IM。
+     * 与转角色的拷贝语义不同：这里只取展示文本，不落库。
+     */
+    fun forwardSelectionImText(messageIds: List<String>, onReady: (String?) -> Unit) {
+        if (messageIds.isEmpty()) {
+            onReady(null)
+            return
+        }
+        viewModelScope.launch {
+            val sourceId = realSessionId.ifEmpty {
+                onReady(null)
+                return@launch
+            }
+            val lines = chatRepository.loadMessages(sourceId)
+                .filter { it.id in messageIds }
+                .sortedBy { it.sortOrder }
+                .mapNotNull { msg -> forwardExtractText(msg.partsJson).takeIf { t -> t.isNotBlank() } }
+            onReady(lines.joinToString("\n\n").ifEmpty { null })
+        }
+    }
+
     private fun forwardPreviewTitle(selected: List<com.jarvis.app.data.db.MessageEntity>): String {
         val firstText = selected.firstOrNull { forwardExtractText(it.partsJson).isNotBlank() }
             ?.let { forwardExtractText(it.partsJson) } ?: "Forwarded Chat"

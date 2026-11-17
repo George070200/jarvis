@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.FolderZip
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material.icons.automirrored.filled.Article
 import kotlinx.coroutines.Dispatchers
@@ -3030,27 +3031,23 @@ fun ChatScreen(
                                 },
                             )
                             MinisMenuDivider()
-                            // [T-role-forward] Forward to another role's session.
-                            // No selection yet -> toast + enter select mode; selection
-                            // present -> open the forward sheet (role/session/autoRespond).
+                            // [T-role-forward][T-im-forward] Forward selection entry —
+                            // one menu item: enter select mode, then the selection bar
+                            // offers both 转发到角色会话 and 转发到IM.
                             val fwdCtx = androidx.compose.ui.platform.LocalContext.current
                             val fwdEmptyMsg = stringResource(R.string.forward_select_at_least_one)
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.forward_to_role)) },
+                                text = { Text(stringResource(R.string.forward)) },
                                 enabled = !isStreaming,
                                 onClick = {
                                     showChatMenu = false
-                                    if (forwardSelectionIds.isEmpty()) {
-                                        android.widget.Toast.makeText(
-                                            fwdCtx,
-                                            fwdEmptyMsg,
-                                            android.widget.Toast.LENGTH_SHORT,
-                                        ).show()
-                                        forwardSelecting = true
-                                        forwardSelectionIds = emptySet()
-                                    } else {
-                                        showForwardSheet = true
-                                    }
+                                    android.widget.Toast.makeText(
+                                        fwdCtx,
+                                        fwdEmptyMsg,
+                                        android.widget.Toast.LENGTH_SHORT,
+                                    ).show()
+                                    forwardSelecting = true
+                                    forwardSelectionIds = emptySet()
                                 },
                                 leadingIcon = {
                                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
@@ -4925,6 +4922,26 @@ fun ChatScreen(
                                     showForwardSheet = true
                                 },
                             ) { Text(stringResource(R.string.forward_to_role)) }
+                            // [T-im-forward] Selection-confirm bar: forward the
+                            // selected messages to the IM (friend/group) — same
+                            // handoff as the ⋮ menu's 转发到IM item.
+                            val imFwdCtx = androidx.compose.ui.platform.LocalContext.current
+                            MinisTextButton(
+                                enabled = forwardSelectionIds.isNotEmpty(),
+                                onClick = {
+                                    // forwardSelectionIds 是 UI id，须先映射回 DB id
+                                    // 再序列化（与 forwardMessagesToRole 的取数一致）。
+                                    val dbIds = viewModel.dbIdsForUiMessageIds(forwardSelectionIds)
+                                    viewModel.forwardSelectionImText(dbIds) { text ->
+                                        if (text != null) {
+                                            com.jarvis.app.im.ImLauncher.openImShare(
+                                                imFwdCtx,
+                                                text,
+                                            )
+                                        }
+                                    }
+                                },
+                            ) { Text(stringResource(R.string.forward_to_im)) }
                             Spacer(modifier = Modifier.weight(1f))
                             MinisTextButton(
                                 onClick = {
