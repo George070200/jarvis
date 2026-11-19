@@ -126,6 +126,20 @@ jobs:
           install_profile "$PROVISION_FILEPROVIDER" fileprovider
           install_profile "$PROVISION_WIDGET" widget
 
+      - name: Prepare iOS config
+        run: |
+          set -euo pipefail
+          # Local-only file (see BUILDING.md); CI uses the checked-in example.
+          if [[ ! -f src/ios/Configs/ProviderCustomization.xcconfig ]]; then
+            cp src/ios/Configs/ProviderCustomization.xcconfig.example \
+              src/ios/Configs/ProviderCustomization.xcconfig
+          fi
+          test -f src/ios/Configs/ProviderCustomization.xcconfig
+          # Sanity: App Store profiles are for com.bitjarvis.app (宣城比特).
+          grep -q 'PRODUCT_BUNDLE_IDENTIFIER = com.bitjarvis.app;' \
+            src/ios/Minis.xcodeproj/project.pbxproj
+          grep -q 'group.com.bitjarvis.app' src/ios/Minis.entitlements
+
       - name: Archive
         run: |
           set -euo pipefail
@@ -138,6 +152,7 @@ jobs:
             -archivePath "$RUNNER_TEMP/Minis.xcarchive" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY='Apple Distribution' \
             | tee "$RUNNER_TEMP/archive.log"
           if [[ ! -d "$RUNNER_TEMP/Minis.xcarchive" ]]; then
               echo "---- archive log (tail) ----"
